@@ -1,14 +1,9 @@
 import React, {useState} from 'react';
-import io from 'socket.io-client';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SignUpForm from '../components/SignUpForm';
 import { useNavigate } from 'react-router-dom';
 import socket from '../socket';
-
-// const socket = io('http://localhost:5000', {
-//   withCredentials: true 
-// });
 
 function SignUpPage() {
     const [err, setErr] = useState(null);

@@ -36,10 +36,7 @@ class SignInForm extends React.Component {
                 this.setState({ error: "" });  
                 this.props.signIn(this.state.body);
                   if (this.props.serverErr !== null)
-                    this.setState({error: this.props.serverErr});  
-                // this.setState({
-                //     body: {email: "", password: ""}
-                // });  
+                    this.setState({error: this.props.serverErr});   
             } else {
                 this.setState({error: "Введен некорректный email"});
             }

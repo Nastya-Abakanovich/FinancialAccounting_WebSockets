@@ -1,31 +1,31 @@
 import React, {useEffect, useState} from 'react';
+import io from 'socket.io-client';
+import ioCookie from 'socket.io-cookie';
 import InputForm from '../components/InputForm';
 import DataTable from '../components/DataTable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
+import socket from '../socket';
+
 
 function HomePage() {
     const [items, setItems] = useState(null);
     const [updItem, setUpdItem] = useState(null);
     const navigate = useNavigate(); 
-    
+
     useEffect(() => {
-      fetch("/api", {method: "GET"})
-        .then((response) => {
-            
-            if (response.status === 401) {
-              navigate('/signIn'); 
-            }
-            return response.json();
-        })
-        .then(data => { 
-          if (data) {
-            setItems(data.items) 
-            console.log(data.user)
-          }
-        })
-    }, [])
+      socket.timeout(5000).emit('getData');
+      socket.on('getDataResponse', (message) => {
+        if (message !== 'Getting data error') {
+          setItems(message);
+        }
+      });
+
+      socket.on('goToSignIn', () => {
+        navigate('/signIn');
+      });
+    }, []);
   
     const deleteItem = async (id) => {
       await fetch('/api/' + id,{ method: 'DELETE',})

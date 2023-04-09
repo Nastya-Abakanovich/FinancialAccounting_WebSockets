@@ -1,35 +1,34 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import io from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SignInForm from '../components/SignInForm';
+import socket from '../socket';
 
 function SignInPage() {
 
     const [err, setErr] = useState(null); 
     const navigate = useNavigate();   
-  
-    const signIn = async (body) => { 
-        const formData = new FormData();        
-        formData.append('email', body.email);
-        formData.append('password', body.password);
     
-        await fetch('/api/users/login', {
-            method: 'POST',
-            credentials: 'include',
-            body: formData
-        })
-        .then((response) => {
-            
-            if (response.status === 400 || response.status === 403) {
-                setErr('Неверно указан email или пароль');
-            } else {
-                setErr(null);
-                navigate("/");
-            }          
-        })
-        .catch((err) => {
-            console.log(err.message);
+    const signIn = async (body) => {     
+        socket.timeout(5000).emit('login', { email: body.email, password: body.password});
+        socket.on('loginResponse', (data) => {
+            console.log(data)
+            if (data !== 'Login error') {
+                if (data === 'Invalid password' || data === 'User not found') {
+                    setErr('Неверно указан email или пароль');
+                } else {
+                    console.log(data);
+                    document.cookie = data.token + '; max-age=3600; path=/;';
+                    document.cookie = data.id + '; max-age=3600; path=/;';
+                    console.log(document.cookie);
+                    setErr(null);
+
+                    navigate("/");
+                    window.location.reload();                    
+                }
+            }
         });
     };
   

@@ -1,36 +1,37 @@
 import React, {useState} from 'react';
+import io from 'socket.io-client';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SignUpForm from '../components/SignUpForm';
 import { useNavigate } from 'react-router-dom';
+import socket from '../socket';
+
+// const socket = io('http://localhost:5000', {
+//   withCredentials: true 
+// });
 
 function SignUpPage() {
     const [err, setErr] = useState(null);
     const navigate = useNavigate(); 
   
     const signUp = async (body) => { 
-        const formData = new FormData();        
-        formData.append('name', body.name);
-        formData.append('email', body.email);
-        formData.append('password', body.password);
-    
-        await fetch('/api/users/register', {
-            method: 'POST',
-            body: formData
-        })
-        .then((response) => {
-            response.json();
-            if (response.status === 201) { 
-                alert('Регистрация прошла успешно!');
-                setErr(null);
-                navigate('/');
+        socket.timeout(5000).emit('register', { email: body.email, password: body.password, name: body.name});
+        socket.on('registerResponse', (data) => {
+            console.log(data);
+            if (data !== 'Register error') {
+                if (data === 'Email already exist') {
+                    setErr('Аккаунт с таким email существует');
+                } else {
+                    console.log('Регистрация прошла успешно!');
+                    alert('Регистрация прошла успешно!');
+                    document.cookie = data.token + '; max-age=3600; path=/;';
+                    document.cookie = data.id + '; max-age=3600; path=/;';
+                    setErr(null);
 
-            } else if (response.status === 409) {
-                setErr('Аккаунт с таким email существует');
+                    navigate("/");
+                    window.location.reload();                    
+                }
             }
-        })
-        .catch((err) => {
-            console.log(err.message);
         });
     };
   
